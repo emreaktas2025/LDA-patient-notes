@@ -9,26 +9,30 @@ library(text2vec)
 library(lubridate)
 library(dplyr)
 
-
-MASTERFILE_Notes_Only <- read_excel("/Users/emreaktas/Desktop/03_UR_Research/NSTEMI_Summer2023/MASTERFILE_Notes_Only.xlsx")
+MASTERFILE_Notes_Only <- read_excel("<path_to_file>")
 
 df <- MASTERFILE_Notes_Only
 
-#new df 
+#___________________________________________
+
+#subsetting dataset (df)
 df$Note_Dttm <- as.Date(df$Note_Dttm, format = "%m/%d/%Y %I:%M:%S %p")
 df$Service_Dt <- as.Date(df$Service_Dt, format = "%m/%d/%Y %I:%M:%S %p")
 
+df <- df[as.Date(df$Note_Dttm) == as.Date(df$Service_Dt), ]
+
+#___________________________________________
+
+#subsetting dataset (new_df)
 new_df <- df %>%
   group_by(Patient) %>%
   arrange(Note_Dttm) %>%
   slice(1) %>%
   ungroup()
-View(new_df)
-
-df <- df[as.Date(df$Note_Dttm) == as.Date(df$Service_Dt), ]
-View(df)
 
 set.seed(1)
+
+#___________________________________________
 
 #creating corpus and pre-processing for NLP (new_df)
 corpus <- VCorpus(VectorSource(new_df$Notes))
@@ -79,6 +83,7 @@ corpus_dtm_filtered <- corpus_dtm_sparse[nonzero_rows, ]
 topic_model <- LDA(corpus_dtm_filtered, k = 10, method = "Gibbs")
 terms(topic_model, 10)[, 1:5]
 
+#___________________________________________
 
 #creating corpus and pre-processing for NLP (df)
 corpus <- VCorpus(VectorSource(df$Notes))
